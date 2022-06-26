@@ -20,7 +20,7 @@ public class _1_InitialMigration extends DataMigration {
 
         // Create players table
         try (Statement statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE " + tablePrefix + "players (" +
+            statement.execute("CREATE TABLE IF NOT EXISTS " + tablePrefix + "players (" +
                     "uuid VARCHAR(36) PRIMARY KEY, " +
                     "experience DOUBLE NOT NULL," +
                     "mob_kills INTEGER NOT NULL, " +
@@ -33,7 +33,7 @@ public class _1_InitialMigration extends DataMigration {
 
         // Create boosts table
         try (Statement statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE " + tablePrefix + "boosts (" +
+            statement.execute("CREATE TABLE IF NOT EXISTS " + tablePrefix + "boosts (" +
                     "id INTEGER PRIMARY KEY" + autoIncrement + ", " +
                     "uuid VARCHAR(36), " +
                     "expiration BIGINT NOT NULL," +
