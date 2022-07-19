@@ -4,8 +4,8 @@ import com.songoda.core.commands.AbstractCommand;
 import com.songoda.epiclevels.EpicLevels;
 import com.songoda.epiclevels.players.EPlayer;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ public class CommandReset extends AbstractCommand {
     private final EpicLevels instance;
 
     public CommandReset(EpicLevels instance) {
-        super(false, "Reset");
+        super(CommandType.CONSOLE_OK, "Reset");
         this.instance = instance;
     }
 
@@ -22,7 +22,7 @@ public class CommandReset extends AbstractCommand {
     protected ReturnType runCommand(CommandSender sender, String... args) {
         if (args.length != 1) return ReturnType.SYNTAX_ERROR;
 
-        OfflinePlayer player = Bukkit.getOfflinePlayer(args[0]);
+        Player player = Bukkit.getPlayer(args[0]);
 
         if (!player.hasPlayedBefore() && !player.isOnline()) {
             instance.getLocale().getMessage("command.general.notonline")

@@ -207,7 +207,7 @@ public class GUILevels extends CustomizableGui {
                 meta.setOwningPlayer(targetPlayer);
             } else {
                 //noinspection deprecation
-                meta.setOwningPlayer(targetPlayer);
+                meta.setOwner(targetPlayer.getName());
             }
             meta.setDisplayName(plugin.getLocale().getMessage("gui.levels.name").processPlaceholder("position", current + 1).processPlaceholder("name", targetPlayer.getName()).getMessage());
             meta.setLore(Arrays.asList(plugin.getLocale().getMessage("gui.levels.level").processPlaceholder("level", Methods.formatDecimal(selected.getLevel())).getMessage(),

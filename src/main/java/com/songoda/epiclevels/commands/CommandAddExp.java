@@ -5,8 +5,8 @@ import com.songoda.epiclevels.EpicLevels;
 import com.songoda.epiclevels.players.EPlayer;
 import com.songoda.epiclevels.utils.Methods;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class CommandAddExp extends AbstractCommand {
     protected ReturnType runCommand(CommandSender sender, String... args) {
         if (args.length != 2) return ReturnType.SYNTAX_ERROR;
 
-        OfflinePlayer player = Bukkit.getOfflinePlayer(args[0]);
+        Player player = Bukkit.getPlayer(args[0]);
 
         if (!player.hasPlayedBefore() && !player.isOnline()) {
             instance.getLocale().getMessage("command.general.notonline")

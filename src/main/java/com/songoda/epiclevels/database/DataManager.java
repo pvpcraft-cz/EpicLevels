@@ -9,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
@@ -52,7 +53,7 @@ public class DataManager extends DataManagerAbstract {
     }
 
     public void updatePlayer(EPlayer ePlayer) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
+        this.runAsync(() -> this.databaseConnector.connect(connection -> {
             String updatePlayer = "UPDATE " + this.getTablePrefix() + "players SET experience = ?, mob_kills = ?, player_kills = ?, deaths = ?, killstreak = ?, best_killstreak = ? WHERE uuid = ?";
             try (PreparedStatement statement = connection.prepareStatement(updatePlayer)) {
                 statement.setDouble(1, ePlayer.getExperience());
@@ -89,7 +90,7 @@ public class DataManager extends DataManagerAbstract {
     }
 
     public void deletePlayer(EPlayer ePlayer) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
+        this.runAsync(() -> this.databaseConnector.connect(connection -> {
             String deletePlayer = "DELETE FROM " + this.getTablePrefix() + "players WHERE uuid = ?";
             try (PreparedStatement statement = connection.prepareStatement(deletePlayer)) {
                 statement.setString(1, ePlayer.getUniqueId().toString());
@@ -99,7 +100,7 @@ public class DataManager extends DataManagerAbstract {
     }
 
     public void getPlayers(Consumer<Map<UUID, EPlayer>> callback) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
+        this.runAsync(() -> this.databaseConnector.connect(connection -> {
             String selectPlayers = "SELECT * FROM " + this.getTablePrefix() + "players";
 
             Map<UUID, EPlayer> players = new HashMap<>();
@@ -128,7 +129,7 @@ public class DataManager extends DataManagerAbstract {
     }
 
     public void getPlayer(Player player, Consumer<EPlayer> callback) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
+        this.runAsync(() -> this.databaseConnector.connect(connection -> {
             String selectPlayers = "SELECT * FROM " + this.getTablePrefix() + "players where uuid = ?";
 
             try (PreparedStatement statement = connection.prepareStatement(selectPlayers)) {
@@ -155,7 +156,7 @@ public class DataManager extends DataManagerAbstract {
     }
 
     public void getBoosts(Consumer<Map<UUID, Boost>> callback) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
+        this.runAsync(() -> this.databaseConnector.connect(connection -> {
             String selectBoosts = "SELECT * FROM " + this.getTablePrefix() + "boosts";
 
             Map<UUID, Boost> boosts = new HashMap<>();
@@ -180,7 +181,7 @@ public class DataManager extends DataManagerAbstract {
     }
 
     public void deleteBoost(Boost boost) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
+        this.runAsync(() -> this.databaseConnector.connect(connection -> {
             String deleteBoost = "DELETE FROM " + this.getTablePrefix() + "boosts WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(deleteBoost)) {
                 statement.setInt(1, boost.getId());
@@ -190,17 +191,28 @@ public class DataManager extends DataManagerAbstract {
     }
 
     public void createBoost(UUID uuid, Boost boost) {
-        this.async(() -> this.databaseConnector.connect(connection -> {
+        this.runAsync(() -> this.databaseConnector.connect(connection -> {
             String createBoost = "INSERT INTO " + this.getTablePrefix() + "boosts (uuid, expiration, multiplier) VALUES (?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(createBoost)) {
+            int boostId;
+            try (PreparedStatement statement = connection.prepareStatement(createBoost, Statement.RETURN_GENERATED_KEYS)) {
                 statement.setString(1, uuid == null ? null : uuid.toString());
 
                 statement.setLong(2, boost.getExpiration());
                 statement.setDouble(3, boost.getMultiplier());
                 statement.executeUpdate();
+
+                try (ResultSet rs = statement.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        boostId = rs.getInt(1);
+                    } else {
+                        throw new SQLException("Creating boost failed, no ID obtained.");
+                    }
+                }
             }
 
-            int boostId = this.lastInsertedId(connection, "boosts");
+            if(boostId == 0) {
+                throw new SQLException("Creating boost failed, no ID obtained.");
+            }
 
             this.sync(() -> boost.setId(boostId));
         }));
